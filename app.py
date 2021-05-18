@@ -2,15 +2,15 @@ import sqlite3 as sql3
 import pandas as pd
 
 
-MENU_PROMPT = """ -- Money Tracker App --
+MENU_PROMPT = """\n -- Money Tracker App --
 
 Please choose one of these options
-1) Add Transaction (insert)
-2) See transaction Group by items
-3) Remove Transaction by id
-4) Update /Correct Transaction
-5) Write the data to a text file
-6) Exit
+\t1) Add Transaction (insert)
+\t2) See transaction Group by items
+\t3) Remove Transaction by id
+\t4) Update /Correct Transaction
+\t5) Write the data to a text file
+\t6) Exit
 
 Your selection:"""
 
@@ -33,6 +33,7 @@ def trans_groupby_name(cursor):
 
     df = pd.DataFrame.from_dict(items,orient='index')
     df.columns = ["description","amount"]
+
     df = df.groupby(['description']).sum()
     print("-" * 20)
     print(df)
@@ -40,6 +41,35 @@ def trans_groupby_name(cursor):
 
     while input("Press any key to continue:\n"):
         break
+
+def remove_trans(cursor):
+    DELETE_QUERY = "DELETE FROM transactions WHERE id = ?"
+    items = {}
+    for id, desc, amount in cursor.execute("SELECT * FROM transactions"):
+        items[id] = [desc, amount]
+
+    df = pd.DataFrame.from_dict(items,orient='index')
+    df.columns = ["description","amount"]
+
+    n = 0
+    while (user_input := input("Please type 'stop' to exit: (or press Enter to continue) ")) !='stop':
+        print()
+        print(df[n:n+5])
+        n += 5
+        print('-'*20)
+
+        query = input("Enter the id that you want to delete:(or press Enter to continue) ")
+        if query != "":
+            query = int(query)
+            cursor.execute(DELETE_QUERY, (query,))
+            print(cursor.rowcount, "row(s) deleted. ")
+
+
+
+
+
+
+
 
 
 def data_export_txt(text_file,cursor):
@@ -67,7 +97,7 @@ def main():
             trans_groupby_name(cursor)
 
         elif user_input == "3":
-            pass
+            remove_trans(cursor)
 
         elif user_input == "4":
             pass
